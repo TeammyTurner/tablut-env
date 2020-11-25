@@ -12,4 +12,4 @@ if __name__ == "__main__":
     
     model.learn(total_timesteps=10000)
     # save in current working directory
-    model.save(os.getcwd() / "ashton_white_player.zip")
+    model.save(os.path.join(os.getcwd(), "ashton_white_player.zip"))
