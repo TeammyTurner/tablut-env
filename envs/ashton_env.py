@@ -93,10 +93,6 @@ class AshtonWhitePlayerEnv(gym.Env):
         done = False
         reward = 0
 
-        # wait for my turn
-        while self.game.turn is not self.PLAYER:
-            pass
-
         start_row, start_column, end_row, end_column = tuple(action)
 
         start = (start_row, start_column)
@@ -106,7 +102,11 @@ class AshtonWhitePlayerEnv(gym.Env):
         if legal:
             info["legal"] = True
             try:
+                # wait for my turn
+                while self.game.turn is not self.PLAYER:
+                    pass
                 self.game.white_move(start, end)
+                reward += 1
             except WinException:
                 reward += 20
                 done = True
@@ -116,25 +116,27 @@ class AshtonWhitePlayerEnv(gym.Env):
             except LoseException:
                 reward -= 20
                 done = True
+            except Exception as e:
+                print(e)
         else:
             info["legal"] = False
             reward -= 1
         
         return self.observation, reward, done, info
 
-    @property
-    def observation(self):
+    @staticmethod
+    def board_to_np(board):
         """
         Encode game board in a numpy array of shape (8, 8) using the mapping defined in BOARD_MAPPING
         """
         # Use the dict in inverse order: tile content -> code
-        codes = list(self.BOARD_MAPPING.keys())
-        keys = list(self.BOARD_MAPPING.values())
+        codes = list(AshtonWhitePlayerEnv.BOARD_MAPPING.keys())
+        keys = list(AshtonWhitePlayerEnv.BOARD_MAPPING.values())
 
         grid = np.zeros((9, 9), dtype=np.int8)
-        for row_i, _ in enumerate(self.board.board):
-            for col_i, _ in enumerate(self.board.board[row_i]):
-                tile = self.board.board[row_i][col_i]
+        for row_i, _ in enumerate(board):
+            for col_i, _ in enumerate(board[row_i]):
+                tile = board[row_i][col_i]
                 # search for a key whose content matches the tile's content
                 matching_key = [
                     isinstance(tile, k[0]) and isinstance(tile.piece, k[1])
@@ -146,6 +148,10 @@ class AshtonWhitePlayerEnv(gym.Env):
 
         return grid
 
+    @property
+    def observation(self):
+        return AshtonWhitePlayerEnv.board_to_np(self.game.board.board)        
+        
     def render(self, mode='console'):
         pprint(self.board.pack(self.board.board))
 

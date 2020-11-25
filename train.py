@@ -8,8 +8,8 @@ if __name__ == "__main__":
     env = AshtonWhitePlayerEnv()
     env = make_vec_env(lambda: env, n_envs=1)
     
-    model = A2C('MlpPolicy', env, verbose=1)
-    
-    model.learn(total_timesteps=10000)
+    model = A2C('MlpPolicy', env, verbose=10)
+    model.learn(total_timesteps=1000)
+    print("Learning ended")
     # save in current working directory
     model.save(os.path.join(os.getcwd(), "ashton_white_player.zip"))
